@@ -1,12 +1,12 @@
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, validator
-from file_analysis import analyze_files
+from code_analyzer import analyze_repository
 from changelog_tool import generate_changelog
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import os
-from typing import Dict
+from typing import Dict, Any
 
 # Create FastAPI app
 app = FastAPI(title="Repository Analysis API")
@@ -30,16 +30,16 @@ class RepoInfo(BaseModel):
         return v
 
 class AnalysisResponse(BaseModel):
-    files: Dict[str, Dict[str, int]]
+    files: Dict[str, Dict[str, Any]]
 
 class ChangelogResponse(BaseModel):
     changelog: str
 
 @app.post("/analyze", response_model=AnalysisResponse)
 @limiter.limit("100/minute")
-def analyze_repository(request: Request, repo: RepoInfo):
+def analyze_repo(request: Request, repo: RepoInfo):
     try:
-        analysis = analyze_files(repo.repo_path)
+        analysis = analyze_repository(repo.repo_path)
         return {"files": analysis}
     except Exception as e:
         raise HTTPException(
@@ -65,7 +65,7 @@ def read_root(request: Request):
     return {
         "message": "Welcome to the Git Repository Analysis API",
         "endpoints": {
-            "/analyze": "Analyze Python files in a git repository",
+            "/analyze": "Deep code analysis of Python files in a git repository",
             "/changelog": "Generate changelog from git commits"
         }
     }

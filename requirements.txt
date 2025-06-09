@@ -7,3 +7,6 @@ slowapi==0.1.9
 limits>=2.3
 typing-extensions>=4.8.0
 starlette>=0.27.0
+radon>=6.0.1
+pylint>=3.0.0
+astroid>=3.0.0
