@@ -5,8 +5,9 @@ from changelog_tool import generate_changelog
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from llm_utils import analyze_code_with_llm
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 # Create FastAPI app
 app = FastAPI(title="Repository Analysis API")
@@ -35,6 +36,13 @@ class AnalysisResponse(BaseModel):
 class ChangelogResponse(BaseModel):
     changelog: str
 
+class LLMRequest(BaseModel):
+    code: str
+    prompt: Optional[str] = None
+
+class LLMResponse(BaseModel):
+    analysis: str
+
 @app.post("/analyze", response_model=AnalysisResponse)
 @limiter.limit("100/minute")
 def analyze_repo(request: Request, repo: RepoInfo):
@@ -58,6 +66,15 @@ def get_changelog(request: Request, repo: RepoInfo):
             status_code=500, 
             detail="Failed to generate changelog: " + str(e)
         )
+
+@app.post("/llm-analyze", response_model=LLMResponse)
+@limiter.limit("100/minute")
+def llm_analyze(request: Request, llm_req: LLMRequest):
+    try:
+        result = analyze_code_with_llm(llm_req.code, llm_req.prompt)
+        return {"analysis": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="LLM analysis failed: " + str(e))
 
 @app.get("/")
 @limiter.limit("100/minute")
