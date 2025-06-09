@@ -1,4 +1,3 @@
-
 document.getElementById('analysisForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -260,8 +259,9 @@ async function handleFileUpload(e) {
         });
         const results = await response.json();
         displayFileAnalysis(results);
-    } catch (error) {
-        console.error('File analysis error:', error);
+    }
+    catch (error) {
+        console.error('File upload failed:', error);
     }
 }
 
@@ -275,3 +275,72 @@ function displayFileAnalysis(results) {
         </div>
     `).join('');
 }
+
+document.getElementById('llmForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = document.getElementById('llmCode').value;
+    const resultDiv = document.getElementById('llmResult');
+    resultDiv.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>';
+    try {
+        const response = await fetch('/api/llm-analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+        });
+        const data = await response.json();
+        if (data.analysis) {
+            resultDiv.innerHTML = `<div class='alert alert-info'><pre>${data.analysis}</pre></div>`;
+        } else {
+            resultDiv.innerHTML = `<div class='alert alert-danger'>No analysis returned.</div>`;
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `<div class='alert alert-danger'>Error: ${error.message}</div>`;
+    }
+});
+
+document.getElementById('cloneForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const gitUrl = document.getElementById('gitUrl').value.trim();
+    const cloneResult = document.getElementById('cloneResult');
+    const repoPaths = document.getElementById('repoPaths');
+    cloneResult.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Cloning...</span></div>';
+    repoPaths.innerHTML = '';
+    try {
+        const response = await fetch('/api/clone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: gitUrl })
+        });
+        const data = await response.json();
+        if (data.success && data.paths) {
+            cloneResult.innerHTML = `<div class='alert alert-success'>Repository cloned successfully!</div>`;
+            repoPaths.innerHTML = `<h6>Available Paths:</h6><ul>${data.paths.map(p => `<li>${p}</li>`).join('')}</ul>`;
+        } else {
+            cloneResult.innerHTML = `<div class='alert alert-danger'>${data.error || 'Failed to clone repository.'}</div>`;
+        }
+    } catch (error) {
+        cloneResult.innerHTML = `<div class='alert alert-danger'>Error: ${error.message}</div>`;
+    }
+});
+
+document.getElementById('revealPathsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const localRepoPath = document.getElementById('localRepoPath').value.trim();
+    const resultDiv = document.getElementById('revealPathsResult');
+    resultDiv.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>';
+    try {
+        const response = await fetch('/api/list-paths', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: localRepoPath })
+        });
+        const data = await response.json();
+        if (data.success && data.paths) {
+            resultDiv.innerHTML = `<h6>Available Paths:</h6><ul>${data.paths.map(p => `<li>${p}</li>`).join('')}</ul>`;
+        } else {
+            resultDiv.innerHTML = `<div class='alert alert-danger'>${data.error || 'No paths found.'}</div>`;
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `<div class='alert alert-danger'>Error: ${error.message}</div>`;
+    }
+});
