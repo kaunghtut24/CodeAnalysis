@@ -205,14 +205,33 @@ function addChatMessage(role, content) {
 
 // Repository Input Handlers
 document.addEventListener('DOMContentLoaded', () => {
-    // GitHub URL input
-    const repoUrlInput = document.getElementById('repo-url');
-    const analyzeBtn = document.getElementById('analyze-btn');
-    
-    repoUrlInput.addEventListener('input', (e) => {
-        const url = e.target.value.trim();
-        analyzeBtn.disabled = !url.match(/https?:\/\/github.com\/.+\/.+/);
-    });
+    try {
+        console.debug('[DEBUG] Initializing repository input handlers');
+        
+        // GitHub URL input
+        const repoUrlInput = document.getElementById('repo-url');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        
+        if (!repoUrlInput) {
+            console.error('[ERROR] repo-url element not found');
+            return;
+        }
+        if (!analyzeBtn) {
+            console.error('[ERROR] analyze-btn element not found');
+            return;
+        }
+
+        repoUrlInput.addEventListener('input', (e) => {
+            try {
+                const url = e.target.value.trim();
+                console.debug(`[DEBUG] URL input: ${url}`);
+                const isValid = url.match(/https?:\/\/github.com\/.+\/.+/);
+                analyzeBtn.disabled = !isValid;
+                console.debug(`[DEBUG] URL validity: ${isValid}`);
+            } catch (error) {
+                console.error('[ERROR] in input handler:', error);
+            }
+        });
 
     // File upload handling
     const fileInput = document.createElement('input');
