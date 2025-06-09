@@ -203,8 +203,18 @@ function addChatMessage(role, content) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// File Analysis Handlers
+// Repository Input Handlers
 document.addEventListener('DOMContentLoaded', () => {
+    // GitHub URL input
+    const repoUrlInput = document.getElementById('repo-url');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    
+    repoUrlInput.addEventListener('input', (e) => {
+        const url = e.target.value.trim();
+        analyzeBtn.disabled = !url.match(/https?:\/\/github.com\/.+\/.+/);
+    });
+
+    // File upload handling
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.multiple = true;
