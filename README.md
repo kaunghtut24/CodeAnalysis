@@ -1,40 +1,91 @@
 
-# Git Automation Agent with Multi-Model Support
+# Git Repository Analysis API
 
-This project implements a Git automation agent using LangGraph and Python. It supports:
+This project provides a REST API for analyzing git repositories using FastAPI/Flask. It offers tools for code analysis and changelog generation.
 
-- Cloning repositories
-- File analysis
-- Automated code generation and testing using LLMs (OpenAI, Anthropic, Gemini, HuggingFace, etc.)
-- Commit and PR creation
-- API access via FastAPI or Flask
+## Features
+
+- **Code Analysis**: Analyze Python files in a repository
+  - Line count statistics
+  - Empty line detection
+  - Import statement analysis
+- **Changelog Generation**: Generate changelogs from git history
+- **Input Validation**: Robust path and repository validation
+- **Rate Limiting**: Protection against API abuse (100 requests/minute)
+- **API Documentation**: Auto-generated with FastAPI/Swagger
 
 ## Requirements
 
 - Python 3.9+
+- FastAPI/Flask
 - GitPython
-- LangGraph
-- FastAPI / Flask
-- HuggingFace Transformers (optional)
+- Uvicorn (for FastAPI)
+- Additional dependencies in requirements.txt
 
-## Running the Flask API
+## Installation
 
-```bash
+```powershell
+# Create and activate virtual environment (Optional)
+python -m venv venv
+.\\venv\\Scripts\\Activate.ps1
+
+# Install dependencies
 pip install -r requirements.txt
-python api_flask.py
 ```
 
-## Running the Agent
+## Running the FastAPI Server
 
-```bash
-curl -X POST http://localhost:5000/run-agent \
-    -H "Content-Type: application/json" \
-    -d '{"github_token": "your_token", "repo_name": "user/repo"}'
+```powershell
+# Start the FastAPI server
+python -m uvicorn api_fastapi:app --reload
 ```
 
-## Extending
+## API Endpoints
 
-You can extend the system with tools like:
-- `file_analysis.py` – Basic file reading and metadata analysis
-- `changelog_tool.py` – Generates a simple changelog from diffs
+### 1. Analyze Repository
+```powershell
+# Analyze Python files in a repository
+Invoke-RestMethod -Uri 'http://127.0.0.1:8000/analyze' `
+    -Method Post `
+    -Body '{"repo_path": "path/to/your/repo"}' `
+    -ContentType 'application/json'
+```
+
+### 2. Generate Changelog
+```powershell
+# Generate changelog from git history
+Invoke-RestMethod -Uri 'http://127.0.0.1:8000/changelog' `
+    -Method Post `
+    -Body '{"repo_path": "path/to/your/repo"}' `
+    -ContentType 'application/json'
+```
+
+## API Response Format
+
+### Analysis Response
+```json
+{
+    "files": {
+        "example.py": {
+            "line_count": 100,
+            "empty_lines": 20,
+            "imports": 5
+        }
+    }
+}
+```
+
+### Changelog Response
+```json
+{
+    "changelog": "- commit1: Description\n- commit2: Description"
+}
+```
+
+## Implementation Details
+
+- `file_analysis.py` – Analyzes Python files for metrics like line count and imports
+- `changelog_tool.py` – Generates changelog from git commit history
+- `api_fastapi.py` – FastAPI implementation with validation and rate limiting
+- `api_flask.py` – Alternative Flask implementation
 
