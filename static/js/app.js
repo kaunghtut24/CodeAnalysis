@@ -87,15 +87,73 @@ function renderSummaryTab(data) {
 }
 
 function renderComplexityTab(data) {
-    // Implementation for complexity metrics display
-    // Would show nested depth, control structures etc.
-    return '<p>Complexity metrics visualization coming soon</p>';
+    let html = `
+        <div class="complexity-container">
+            <h4>Code Complexity Metrics</h4>
+            <table class="table table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>File</th>
+                        <th>If</th>
+                        <th>For</th>
+                        <th>While</th>
+                        <th>Try</th>
+                        <th>Max Depth</th>
+                        <th>Complexity Score</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+    
+    for (const [file, stats] of Object.entries(data)) {
+        if (!stats.complexity_metrics) continue;
+        const cm = stats.complexity_metrics;
+        const score = (cm.if_statements || 0) + (cm.for_loops || 0) + 
+                     (cm.while_loops || 0) + (cm.try_except || 0) + 
+                     (cm.nested_depth || 0);
+        html += `<tr>
+            <td>${file}</td>
+            <td>${cm.if_statements || 0}</td>
+            <td>${cm.for_loops || 0}</td>
+            <td>${cm.while_loops || 0}</td>
+            <td>${cm.try_except || 0}</td>
+            <td>${cm.nested_depth || 0}</td>
+            <td>${score}</td>
+        </tr>`;
+    }
+    
+    return html + '</tbody></table>';
 }
 
 function renderDocumentationTab(data) {
-    // Implementation for documentation metrics display
-    // Would show docstring coverage etc.
-    return '<p>Documentation metrics visualization coming soon</p>';
+    let html = `
+        <div class="documentation-container">
+            <h4>Documentation Metrics</h4>
+            <table class="table table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>File</th>
+                        <th>Documented</th>
+                        <th>Undocumented</th>
+                        <th>Coverage %</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+    
+    for (const [file, stats] of Object.entries(data)) {
+        if (!stats.documentation_metrics) continue;
+        const dm = stats.documentation_metrics;
+        html += `
+            <tr>
+                <td>${file}</td>
+                <td>${dm.documented_functions + dm.documented_classes}</td>
+                <td>${dm.undocumented_functions + dm.undocumented_classes}</td>
+                <td class="${dm.docstring_coverage >= 80 ? 'text-success' : dm.docstring_coverage >= 50 ? 'text-warning' : 'text-danger'}">
+                    ${dm.docstring_coverage || 0}%
+                </td>
+            </tr>`;
+    }
+    
+    return html + '</tbody></table>';
 }
 
 function renderChangelog(data) {
