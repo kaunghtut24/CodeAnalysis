@@ -1,6 +1,6 @@
 
 from flask import Flask, request, jsonify, render_template
-from file_analysis import analyze_files
+from code_analyzer import analyze_repository
 from changelog_tool import generate_changelog
 import os
 
@@ -16,7 +16,7 @@ def analyze_repo():
     repo_path = data.get("repo_path")
     if not repo_path:
         return jsonify({"error": "repo_path is required"}), 400
-    return jsonify({"files": analyze_files(repo_path)})
+    return jsonify(analyze_repository(repo_path))
 
 @app.route("/changelog", methods=["POST"])
 def get_changelog():
