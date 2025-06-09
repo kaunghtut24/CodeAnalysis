@@ -232,6 +232,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+    } catch (error) {
+        console.error('[ERROR] Initialization failed:', error);
+    }
+
     // File upload handling
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
