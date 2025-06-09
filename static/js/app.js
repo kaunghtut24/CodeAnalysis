@@ -159,3 +159,90 @@ function renderDocumentationTab(data) {
 function renderChangelog(data) {
     return `<h3>Changelog</h3><pre>${data.changelog}</pre>`;
 }
+
+// Chat Interface Handlers
+document.getElementById('send-chat').addEventListener('click', handleChatSubmit);
+document.getElementById('chat-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleChatSubmit();
+});
+
+async function handleChatSubmit() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    addChatMessage('user', message);
+    input.value = '';
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                message,
+                context: window.analysisResults || null 
+            })
+        });
+        const data = await response.json();
+        addChatMessage('assistant', data.response);
+    } catch (error) {
+        addChatMessage('system', 'Error connecting to assistant');
+        console.error('Chat error:', error);
+    }
+}
+
+function addChatMessage(role, content) {
+    const messagesDiv = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert ${role === 'user' ? 'alert-primary' : 'alert-secondary'}`;
+    messageDiv.innerHTML = `
+        <strong>${role.toUpperCase()}:</strong>
+        <div>${content}</div>
+    `;
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// File Analysis Handlers
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.style.display = 'none';
+    fileInput.addEventListener('change', handleFileUpload);
+    document.body.appendChild(fileInput);
+
+    document.getElementById('file-analysis-results').addEventListener('click', () => {
+        fileInput.click();
+    });
+});
+
+async function handleFileUpload(e) {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+
+    try {
+        const response = await fetch('/api/analyze/files', {
+            method: 'POST',
+            body: formData
+        });
+        const results = await response.json();
+        displayFileAnalysis(results);
+    } catch (error) {
+        console.error('File analysis error:', error);
+    }
+}
+
+function displayFileAnalysis(results) {
+    const container = document.getElementById('file-analysis-results');
+    container.innerHTML = results.map(file => `
+        <div class="file-result mb-3">
+            <h6>${file.filename}</h6>
+            <div>Lines: ${file.lines}</div>
+            <div>Complexity: ${file.complexity}</div>
+        </div>
+    `).join('');
+}
